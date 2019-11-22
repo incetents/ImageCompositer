@@ -29,7 +29,7 @@ class Image
   {
     m_filePath = filepath;
     m_filePathWidth = textWidth(filepath);
-    m_image = loadImage(m_filePath);
-    println(m_image);
+    if(fileExists(filepath))
+      m_image = loadImage(m_filePath);
   }
 }
