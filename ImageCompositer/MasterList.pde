@@ -5,26 +5,22 @@ class MasterList
   Image m_selectedImage = null;
 
   // Position
-  PVector m_position;
+  PVector m_position = new PVector(0, 0);
   // Sizes
-  final float m_width = 300;
+  float m_width = 300;
   final float m_image_displayer_height = 150;
   final float m_title_displayer_height = 20;
-  // Data
-  float m_scroll = 0.0f;
-  float m_scrollMax = 0.0f;
   // Rectangle Placements
   Rectangle rec_bg = new Rectangle();
   Rectangle rec_fg_title = new Rectangle();
   Rectangle rec_fg_image = new Rectangle();
   Rectangle rec_fg_list = new Rectangle();
-  Rectangle rec_scrollbar_bg = new Rectangle();
-  Rectangle rec_scrollbar_fg = new Rectangle();
+  // Buttons
+  Button_Square button_addFile = new Button_Square(ButtonID.ADD_FILE_TO_MASTERLIST, "Import File");
+  Button_Square button_addFolder = new Button_Square(ButtonID.ADD_FOLDER_TO_MASTERLIST, "Import Folder");
+  // Scrollbar
+  Scrollbar scrollbar = new Scrollbar();
 
-  MasterList(float x, float y)
-  {
-    m_position = new PVector(x, y);
-  }
 
   void eraseSelectedImage()
   {
@@ -37,38 +33,28 @@ class MasterList
         m_images.remove(i);
         m_selectedImage = null;
         // fix scroll
-        scrollUpdate(0.0);
+        scrollbar.updateScroll(0.0);
         break; // end for loop
       }
     }
   }
 
-  void scrollUpdate(float direction)
+  void updateScroll(float direction)
   {
     update();
-    if (rec_fg_list.isMouseOver())
+    if (rec_fg_list.isMouseOver() || scrollbar.isMouseOver())
     {
-      m_scroll += direction * 50;
-      m_scroll = constrain(m_scroll, 0, m_scrollMax);
+      scrollbar.updateScroll(direction);
     }
+  }
+
+  void unselect()
+  {
+    m_selectedImage = null;
   }
 
   void update()
   {
-    // Calc Data
-    float TotalTextVSpace = m_images.size() * TextSize;
-    float ExcessVSpace = TotalTextVSpace - rec_fg_list.h();
-    m_scrollMax = ExcessVSpace;
-
-    float ScrollbarRatio = min(rec_fg_list.h() / TotalTextVSpace, 1);
-    float ScrollbarHeight = ScrollbarRatio * rec_fg_list.h();
-
-    float ScrollAmount = m_scroll;
-    if (m_scrollMax != 0)
-      ScrollAmount /= m_scrollMax;
-
-    float ScrollbarY = lerp(rec_fg_list.y(), rec_fg_list.y() + rec_fg_list.h() - ScrollbarHeight, ScrollAmount);
-
     // Rectangle Data
     rec_bg.set(
       m_position.x, 
@@ -80,9 +66,9 @@ class MasterList
 
     rec_fg_image.set(
       m_position.x, 
-      m_position.y + (ScreenHeight - m_image_displayer_height), 
+      m_position.y + (ScreenHeight - m_image_displayer_height) - (PaddingBG + PaddingFG), 
       m_width, 
-      m_image_displayer_height, 
+      m_image_displayer_height + (PaddingBG + PaddingFG), 
       PaddingBG + PaddingFG
       );
     rec_fg_title.set(
@@ -95,38 +81,71 @@ class MasterList
     rec_fg_list.set(
       m_position.x, 
       m_position.y + rec_fg_title.h() + PaddingFG/2, 
-      m_width, 
-      ScreenHeight - rec_fg_title.h() - rec_fg_image.h() - PaddingFG, 
+      m_width - scrollbar.getRequiredWidth(), 
+      ScreenHeight - rec_fg_title.h() - rec_fg_image.h() - PaddingFG - BUTTON_HEIGHT, 
       PaddingBG + PaddingFG
       );
 
-    rec_scrollbar_bg.set(
-      rec_fg_list.x() + rec_fg_list.w() - 10, 
+    // Scrollbar
+    scrollbar.setSize(
+      rec_fg_list.x() + rec_fg_list.w(), 
       rec_fg_list.y(), 
-      10, 
+      SCROLLBAR_WIDTH, 
       rec_fg_list.h(), 
-      0
+      (m_images.size() * TextSize)
       );
-    rec_scrollbar_fg.set(
-      rec_fg_list.x() + rec_fg_list.w() - 10, 
-      ScrollbarY, 
-      10, 
-      ScrollbarHeight, 
-      0
+
+    // Button Data
+    button_addFile.set(
+      m_position.x, 
+      m_position.y + rec_fg_title.h() + 3*PaddingFG/4 + rec_fg_list.h(), 
+      button_addFile.width() + (PaddingBG + PaddingFG), 
+      BUTTON_HEIGHT + (PaddingBG + PaddingFG), 
+      PaddingBG + PaddingFG
       );
+    button_addFile.setColors(
+      COLOR_GREEN, 
+      COLOR_GREEN_LIGHT, 
+      COLOR_GREEN_DARK
+      );
+    button_addFile._color_outline = COLOR_GREEN_DARK;
+
+    button_addFolder.set(
+      m_position.x + button_addFile.w() + 5, 
+      m_position.y + rec_fg_title.h() + 3*PaddingFG/4 + rec_fg_list.h(), 
+      button_addFolder.width() + (PaddingBG + PaddingFG), 
+      BUTTON_HEIGHT + (PaddingBG + PaddingFG), 
+      PaddingBG + PaddingFG
+      );
+    button_addFolder.setColors(
+      COLOR_GREEN, 
+      COLOR_GREEN_LIGHT, 
+      COLOR_GREEN_DARK
+      );
+    button_addFolder._color_outline = COLOR_GREEN_DARK;
+
+    // Button inputs
+    if (button_addFile.isPressed())
+    {
+      ButtonRequest = button_addFile._id;
+      selectInput("Select Image to Import:", "fileSelected");
+    } else if (button_addFolder.isPressed())
+    {
+      ButtonRequest = button_addFolder._id;
+      selectFolder("Select Folder to Import:", "folderSelected");
+    }
 
     // Select Image
     if (mousePressed)
     {
       for (int i = 0; i < m_images.size(); i++)
       {
-        Rectangle r = new Rectangle(rec_fg_list.x(), rec_fg_list.y() + (TextSize * i) - m_scroll, rec_fg_list.w(), TextSize, 0);
+        Rectangle r = new Rectangle(rec_fg_list.x(), rec_fg_list.y() + (TextSize * i) - scrollbar.getYDisplacement(), rec_fg_list.w(), TextSize, 0);
         //
         if (r.isMouseOver() && rec_fg_list.isMouseOver())
         {
           //
-
-
+          unselectAll();
           m_selectedImage = m_images.get(i);
         }
       }
@@ -136,23 +155,19 @@ class MasterList
   void draw()
   {
     // BG
-    fill(COLOR_LIGHT_GREY);
-    rec_bg.draw();
+    rec_bg.draw(COLOR_LIGHT_GREY);
 
     // Title
-    fill(COLOR_MID_GREY);
-    rec_fg_title.draw();
+    rec_fg_title.draw(COLOR_MID_GREY);
 
     // Write Title
     DrawShadowedText("Master List", rec_fg_title.x() + 4, rec_fg_title.y() + TextSize, COLOR_ORANGE);
 
     // Image Displayer
-    fill(COLOR_BLACK);
-    rec_fg_image.draw();
+    rec_fg_image.draw(COLOR_BLACK);
 
     // Image Lists
-    fill(COLOR_MID_GREY);
-    rec_fg_list.draw();
+    rec_fg_list.draw(COLOR_MID_GREY);
 
     // Mask name section
     rec_fg_list.maskArea();
@@ -162,16 +177,15 @@ class MasterList
     {
       if (m_selectedImage == m_images.get(i))
       {
-        fill(COLOR_BLACK, 140);
-        Rectangle r = new Rectangle(rec_fg_list.x(), rec_fg_list.y() + (TextSize * i) - m_scroll, rec_fg_list.w(), TextSize, 0);
-        r.draw();
+        Rectangle r = new Rectangle(rec_fg_list.x(), rec_fg_list.y() + (TextSize * i) - scrollbar.getYDisplacement(), rec_fg_list.w(), TextSize, 0);
+        r.draw(color(COLOR_BLACK, 140));
       }
     }
 
     // Write image names
     for (int i = 0; i < m_images.size(); i++)
     {
-      Rectangle r = new Rectangle(rec_fg_list.x(), rec_fg_list.y() + (TextSize * i) - m_scroll, rec_fg_list.w(), TextSize, 0);
+      Rectangle r = new Rectangle(rec_fg_list.x(), rec_fg_list.y() + (TextSize * i) - scrollbar.getYDisplacement(), rec_fg_list.w(), TextSize, 0);
 
       // Color of text
       color c = COLOR_BLACK;
@@ -197,14 +211,14 @@ class MasterList
         c = COLOR_YELLOW;
 
       // Justify text on right side if too large
-      if (m_images.get(i).m_filePathWidth > r.w() - rec_scrollbar_bg.w() - 4)
+      if (m_images.get(i).fileNameLength() > r.w() - scrollbar.getRequiredWidth() - 4)
       {
-        DrawShadowedText(m_images.get(i).m_filePath, r.x() - m_images.get(i).m_filePathWidth + r.w() - rec_scrollbar_bg.w() - 4, r.y() + TextSize - 3, c);
+        DrawShadowedText(m_images.get(i).fileName(), r.x() - m_images.get(i).fileNameLength() + r.w() - scrollbar.getRequiredWidth() - 4, r.y() + TextSize - 3, c);
       }
       // Justify on left side
       else
       {
-        DrawShadowedText(m_images.get(i).m_filePath, r.x(), r.y() + TextSize - 3, c);
+        DrawShadowedText(m_images.get(i).fileName(), r.x(), r.y() + TextSize - 3, c);
       }
     }
 
@@ -222,9 +236,10 @@ class MasterList
           rec_fg_image.x() + rec_fg_image.w()/2 - h_size/2, rec_fg_image.y(), 
           h_size, rec_fg_image.h()
           );
-      } else
+      }
+      //
+      else
       {
-
         float v_size = rec_fg_image.w() / m_selectedImage.aspectRatio();
         image(m_selectedImage.m_image, 
           rec_fg_image.x(), rec_fg_image.y() + rec_fg_image.h()/2 - v_size/2, 
@@ -236,16 +251,21 @@ class MasterList
       fill(0, 100);
       rect(rec_fg_image.x(), rec_fg_image.y() + rec_fg_image.h() - (TextSize + 2), rec_fg_image.w(), (TextSize + 2));
       // Draw Displayed Image path
-      DrawShadowedText(m_selectedImage.m_filePath, rec_fg_image.x() - m_selectedImage.m_filePathWidth + rec_fg_image.w(), rec_fg_image.y() + rec_fg_image.h() - 4, color(255));
+      float textScrollRatio = rec_fg_image.mouseXHoverRatio();
+      float textX = lerp(rec_fg_image.x(), rec_fg_image.x() - m_selectedImage.directoryLength() + rec_fg_image.w(), textScrollRatio);
+
+      DrawShadowedText(m_selectedImage.directory(), textX, rec_fg_image.y() + rec_fg_image.h() - 4, color(255));
     }
 
     // No mask
     noClip();
 
     // Scrollbar
-    fill(COLOR_DARK_GREY);
-    rec_scrollbar_bg.draw();
-    fill(COLOR_WHITE_FAINT);
-    rec_scrollbar_fg.draw();
+    if (scrollbar.isNeeded())
+      scrollbar.draw();
+
+    // Button
+    button_addFile.draw();
+    button_addFolder.draw();
   }
 }

@@ -3,76 +3,25 @@ import drop.*;
 SDrop drop;
 
 // Padding
-final float PaddingBG = 10;
-final float PaddingFG = 24;
+float PaddingBG = 8;
+float PaddingFG = 12;
+
+// Mouse Released
+boolean MouseReleased = false;
 
 // Sizes
 int ScreenWidth = 1020;
 int ScreenHeight = 720;
-final int TextSize = 15;
 
 // Screens
-MasterList masterList1 = new MasterList(0, 0);
-LayerSystem layerSystem1 = new LayerSystem(masterList1.m_width - PaddingBG/2, 0);
-MessageBox messageBox = null;
+MasterList masterList1 = new MasterList();
+LayerSystem layerSystem1 = new LayerSystem();
+ExportSystem exportSystem1 = new ExportSystem();
 
-enum MessageBoxType
+void unselectAll()
 {
-  IMPORT
-}
-class MessageBox
-{
-  private MessageBoxType m_type;
-  private String m_message;
-  private ArrayList<String> m_choices = new ArrayList<String>();
-  //
-  MessageBox(MessageBoxType type)
-  {
-    m_type = type;
-    
-    switch(m_type)
-    {
-      case IMPORT:
-      {
-        m_message = "Where to Import Image(s)";
-        m_choices.add("Master List");
-        m_choices.add("Layers");
-      }
-      break;
-    }
-  }
-  //
-  void update()
-  {
-    switch(m_type)
-    {
-      case IMPORT:
-      {
-      }
-      break;
-    }
-  }
-  //
-  void draw()
-  {
-    switch(m_type)
-    {
-      case IMPORT:
-      {
-        // BG
-        fill(0, 150);
-        rect(0, 0, ScreenWidth, ScreenHeight);
-        
-        // Center Box
-        fill(COLOR_MID_GREY);
-        rect(ScreenWidth/4, ScreenHeight/4, ScreenWidth/2, ScreenHeight/2);
-        
-        fill(255);
-        text(m_message, ScreenWidth/2 - textWidth(m_message)/2, ScreenHeight/2 - TextSize);
-      }
-      break;
-    }
-  }
+  masterList1.unselect();
+  layerSystem1.unselect();
 }
 
 // Setup
@@ -91,6 +40,11 @@ void setup()
 
 void init()
 {
+  image_editor_eyeOpen = new Image("eye_open.png");
+  image_editor_eyeClosed = new Image("eye_closed.png");
+  image_editor_up = new Image("up_arrow.png");
+  image_editor_down = new Image("down_arrow.png");
+
   initFonts();
   textSize(TextSize);
   textLeading(TextSize);
@@ -98,11 +52,17 @@ void init()
   masterList1.m_images.add(new Image("\\Users\\incet\\OneDrive\\Desktop\\debug images\\cloud.png"));
   masterList1.m_images.add(new Image("\\Users\\incet\\OneDrive\\Desktop\\debug images\\color.jpg"));
 
-  masterList1.m_images.add(new Image("\\Users\\incet\\OneDrive\\Desktop\\debug images\\test.png"));
-  for (int i = 0; i < 84; i++)
-    masterList1.m_images.add(new Image("EMPTY" + str(i)));
 
-  masterList1.m_images.add(new Image("\\Users\\incet\\OneDrive\\Desktop\\debug images\\Metal11_disp.jpg"));
+  //masterList1.m_images.add(new Image("\\Users\\incet\\OneDrive\\Desktop\\debug images\\test.png"));
+  //for (int i = 0; i < 28; i++)
+  //  masterList1.m_images.add(new Image("EMPTY" + str(i)));
+
+  //masterList1.m_images.add(new Image("\\Users\\incet\\OneDrive\\Desktop\\debug images\\Metal11_disp.jpg"));
+
+  layerSystem1.m_Layers.add(new Layer("MASTER", LayerType.MASTER, ""));
+
+  for (int i = 0; i < 3; i++)
+    layerSystem1.m_Layers.add(new Layer("test" + str(i), LayerType.IMAGE, ""));
 }
 void draw()
 {
@@ -111,19 +71,38 @@ void draw()
 
   background(COLOR_DARK_GREY);
 
-  if (messageBox == null)
+  boolean UpdateSystems = ButtonRequest == ButtonID.NONE;
+
+  if (UpdateSystems)
+  {
+    masterList1.m_position.x = PaddingBG/4;
+    masterList1.m_width = (ScreenWidth / 3);
     masterList1.update();
+  }
+
   masterList1.draw();
 
-  if (messageBox == null)
+  if (UpdateSystems)
+  {
+
+    layerSystem1.m_position.x = (ScreenWidth / 3);
+    layerSystem1.m_width = (ScreenWidth / 3);
     layerSystem1.update();
+  }
+
   layerSystem1.draw();
 
-  if (messageBox != null)
+  if (UpdateSystems)
   {
-    messageBox.update();
-    messageBox.draw();
+    exportSystem1.m_position.x = (2 * ScreenWidth / 3) - PaddingBG/4;
+    exportSystem1.m_width = (ScreenWidth / 3);
+    exportSystem1.update();
   }
+
+  exportSystem1.draw();
+
+  // End of frame update
+  MouseReleased = false;
 }
 
 void keyPressed()
@@ -133,22 +112,100 @@ void keyPressed()
   if (keyCode == 8 || keyCode == 127) // RETURN and DELETE
   {
     masterList1.eraseSelectedImage();
+    layerSystem1.eraseSelectedLayer();
   }
-  
-  if(key == 'a' || key == 'A')
+
+  if (key == '1')
+    PaddingBG--;
+  else if (key == '2')
+    PaddingBG++;
+
+  if (key == '3')
+    PaddingFG--;
+  else if (key == '4')
+    PaddingFG++;
+
+  PaddingBG = max(PaddingBG, 0);
+  PaddingFG = max(PaddingFG, 0);
+
+  if (key == 'a' || key == 'A')
   {
-    messageBox = new MessageBox(MessageBoxType.IMPORT);
   }
 }
 void keyReleased()
 {
+  if (key == 'a' || key == 'A')
+  {
+  }
+}
+
+void mouseReleased()
+{
+  MouseReleased = true;
 }
 
 void mouseWheel(MouseEvent event)
 {
   //float e = event.getCount();
   //println(e);
-  masterList1.scrollUpdate(event.getCount());
+  masterList1.updateScroll(event.getCount());
+  layerSystem1.updateScroll(event.getCount());
+}
+
+// FILE IMPORT
+void fileSelected(File selection)
+{
+  //
+  if (selection == null)
+  {
+    // Selection Cancelled or exited
+    println("No selection");
+  }
+  //
+  else if (ButtonRequest == ButtonID.ADD_FILE_TO_MASTERLIST)
+  {
+    masterList1.m_images.add(new Image(selection.getAbsolutePath()));
+  }
+  //
+  else if (ButtonRequest == ButtonID.ADD_IMAGE_LAYER)
+  {
+    File f = new File(selection.getAbsolutePath());
+    layerSystem1.m_Layers.add(new Layer(f.getName(), LayerType.IMAGE, selection.getAbsolutePath()));
+  }
+
+  // End Request
+  ButtonRequest = ButtonID.NONE;
+}
+// FOLDER IMPORT
+void folderSelected(File selection)
+{
+  //
+  if (selection == null)
+  {
+    // Selection Cancelled or exited
+    println("No selection");
+  }
+  //
+  else if (ButtonRequest == ButtonID.ADD_FOLDER_TO_MASTERLIST)
+  {
+    println("User selected " + selection.getAbsolutePath());
+    java.io.File folder = new java.io.File(selection.getAbsolutePath());
+    // list the files in the data folder
+    String[] filenames = folder.list();
+
+    // Get files
+    for (int i = 0; i < filenames.length; i++)
+    {
+      masterList1.m_images.add(new Image(folder.getAbsolutePath() + '\\' + filenames[i]));
+    }
+  }
+  //
+  else if (ButtonRequest == ButtonID.EXPORT_IMAGES)
+  {
+    println("EXPORT");
+  }
+  // End Request
+  ButtonRequest = ButtonID.NONE;
 }
 
 void dropEvent(DropEvent theDropEvent)
@@ -159,8 +216,11 @@ void dropEvent(DropEvent theDropEvent)
     //test = theDropEvent.loadImage();
 
     if (fileExists(theDropEvent.filePath()))
-      println("FileExists");
+    {
+      //println("FileExists");
+      masterList1.m_images.add(new Image(theDropEvent.filePath()));
+    }
 
-    //masterList1.m_images.add(new Image(theDropEvent.filePath()));
+    //
   }
 }

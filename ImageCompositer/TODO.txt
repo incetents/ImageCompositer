@@ -1,0 +1,22 @@
+
+[ core ]
+
+> Export
+	> List of sizes (default not deletable one is native size of master file)
+	> Black and white version [with levels]
+	> Jpg/Png Radio boxes
+	
+> Export Name
+	> Creates new name based on file
+	[Prefix][Master][Suffix][Size][**BlackWhite**]
+	
+[ extra ]
+	
+> Save settings in a file (json-ish)
+> Load settings from a file (json-ish)
+	
+> Cull, layers and master text outside of cullzone will not render (rect to rect intersection)
+	
+> Options
+	> Toggle FG and BG Padding (left button[--], display number, right button[++])
+	> Toggle Width of different systems

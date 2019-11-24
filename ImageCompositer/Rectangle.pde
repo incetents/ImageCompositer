@@ -1,61 +1,77 @@
 
 class Rectangle
 {
-  float[] data = {0, 0, 0, 0};
-  float padding = 0;
+  float[] m_data = {0, 0, 0, 0};
+  float m_padding = 0;
   Rectangle()
   {
   }
-  Rectangle(float x, float y, float w, float h, float _padding)
+  Rectangle(float x, float y, float w, float h, float padding)
   {
-    set(x,y,w,h,_padding);
+    set(x,y,w,h,padding);
   }
-  void set(float x, float y, float w, float h, float _padding)
+  void set(float x, float y, float w, float h, float padding)
   {
-    data[0] = x;
-    data[1] = y;
-    data[2] = w;
-    data[3] = h;
-    padding = _padding;
+    m_data[0] = x;
+    m_data[1] = y;
+    m_data[2] = w;
+    m_data[3] = h;
+    m_padding = padding;
   }
   float x_nopadding() { 
-    return data[0];
+    return m_data[0];
   }
   float y_nopadding() { 
-    return data[1];
+    return m_data[1];
   }
   float w_nopadding() { 
-    return data[2];
+    return m_data[2];
   }
   float h_nopadding() { 
-    return data[3];
+    return m_data[3];
   }
   float x(){
-    return data[0] + padding/2;
+    return m_data[0] + m_padding/2;
   }
   float y(){
-    return data[1] + padding/2;
+    return m_data[1] + m_padding/2;
   }
   float w(){
-    return data[2] - padding;
+    return m_data[2] - m_padding;
   }
   float h(){
-    return data[3] - padding;
+    return m_data[3] - m_padding;
+  }
+  
+  // [0,1] of where the MouseX is on the rectangle
+  float mouseXHoverRatio()
+  {
+    return constrain((mouseX - x()) / w(), 0, 1);
+  }
+  // [0,1] of where the MouseY is on the rectangle
+  float mouseYHoverRatio()
+  {
+    return constrain((mouseX - y()) / h(), 0, 1);
   }
   
   boolean isMouseOver()
   {
     return (
-      mouseX >= (data[0] + padding/2) && mouseX < (data[0] + data[2] - padding/2) &&
-      mouseY >= (data[1] + padding/2) && mouseY < (data[1] + data[3] - padding/2)
+      mouseX >= (m_data[0] + m_padding/2) && mouseX < (m_data[0] + m_data[2] - m_padding/2) &&
+      mouseY >= (m_data[1] + m_padding/2) && mouseY < (m_data[1] + m_data[3] - m_padding/2)
       );
   }
   void maskArea()
   {
-    clip(data[0] + padding/2, data[1] + padding/2, data[2] - padding, data[3] - padding);
+    clip(m_data[0] + m_padding/2, m_data[1] + m_padding/2, m_data[2] - m_padding, m_data[3] - m_padding);
+  }
+  void draw(color c)
+  {
+    fill(c);
+    rect(m_data[0] + m_padding/2, m_data[1] + m_padding/2, m_data[2] - m_padding, m_data[3] - m_padding);
   }
   void draw()
   {
-    rect(data[0] + padding/2, data[1] + padding/2, data[2] - padding, data[3] - padding);
+    rect(m_data[0] + m_padding/2, m_data[1] + m_padding/2, m_data[2] - m_padding, m_data[3] - m_padding);
   }
 }
