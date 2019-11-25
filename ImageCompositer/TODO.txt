@@ -1,10 +1,12 @@
 
 [ core ]
 
+> Button press,pressdown,pressup alternateives
+
 > Export
 	> List of sizes (default not deletable one is native size of master file)
+	> Interlace option
 	> Black and white version [with levels]
-	> Jpg/Png Radio boxes
 	
 > Export Name
 	> Creates new name based on file
@@ -15,8 +17,12 @@
 > Save settings in a file (json-ish)
 > Load settings from a file (json-ish)
 	
+> Preview export images in messagebox [long list] + [preview top right square]
+	> [Export], [Cancel] Buttons
+	
 > Cull, layers and master text outside of cullzone will not render (rect to rect intersection)
 	
 > Options
 	> Toggle FG and BG Padding (left button[--], display number, right button[++])
 	> Toggle Width of different systems
+	> Image Displayer checkerboard opacity level
