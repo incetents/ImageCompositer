@@ -1,28 +1,47 @@
 
 [ core ]
 
-> Button press,pressdown,pressup alternateives
+- add text saying [drag and drop images] for master list
+- add text saying [delete key to remove selected item] 
 
 > Export
-	> List of sizes (default not deletable one is native size of master file)
-	> Interlace option
-	> Black and white version [with levels]
+	> Jpg/Png Radio boxes [png states non interlaced]
 	
 > Export Name
 	> Creates new name based on file
 	[Prefix][Master][Suffix][Size][**BlackWhite**]
 	
+	
+	[blahblah]_[name]_[secondlbhajb]_64x64.png
+	
 [ extra ]
 	
-> Save settings in a file (json-ish)
-> Load settings from a file (json-ish)
+> Save settings in a file (json)
+> Load settings from a file (json)
+-> Also save previous screen width/height if possible?
+
+> Export
+	> Black and white version [with levels]
+	> Perhaps tint sliders too
 	
+> System that shows exporting loading bar
+	[ 12/14 files exported ]
+	> Requires exporting to be done in a seperate thread
+
 > Preview export images in messagebox [long list] + [preview top right square]
 	> [Export], [Cancel] Buttons
 	
 > Cull, layers and master text outside of cullzone will not render (rect to rect intersection)
 	
+> Move Export Button to bottom, make it really huge
+->export settings = 40%
+->options = 40%
+->giant export button = 20%
+	
 > Options
+	> - exporting checks duplicate names, appends (1)
+	- toggle option [overwrite / duplicate ]
+	
 	> Toggle FG and BG Padding (left button[--], display number, right button[++])
 	> Toggle Width of different systems
 	> Image Displayer checkerboard opacity level
